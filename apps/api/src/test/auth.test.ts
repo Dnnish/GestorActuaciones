@@ -16,9 +16,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await db.execute(sql`DELETE FROM sessions`);
-  await db.execute(sql`DELETE FROM accounts`);
-  await db.execute(sql`DELETE FROM users`);
+  await db.execute(sql`TRUNCATE users, sessions, accounts, verifications CASCADE`);
 });
 
 describe("POST /api/auth/sign-up/email", () => {
