@@ -4,6 +4,7 @@ import authPlugin from "./plugins/auth.js";
 import authRoutes from "./routes/auth-routes.js";
 import userRoutes from "./routes/user-routes.js";
 import actuacionRoutes from "./routes/actuacion-routes.js";
+import { ensureBucket } from "./lib/s3-client.js";
 
 const app = Fastify({ logger: true });
 
@@ -20,6 +21,8 @@ await app.register(actuacionRoutes);
 app.get("/api/health", async () => {
   return { status: "ok" };
 });
+
+await ensureBucket();
 
 await app.listen({
   port: Number(process.env.API_PORT ?? 3001),
