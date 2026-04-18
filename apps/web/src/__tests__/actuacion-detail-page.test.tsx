@@ -11,6 +11,8 @@ vi.mock("@/hooks/use-actuacion", () => ({
 
 vi.mock("@/hooks/use-documents", () => ({
   useDocuments: vi.fn(),
+  useUploadDocument: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useDeleteDocument: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
 
 vi.mock("@/hooks/use-auth", () => ({
@@ -209,11 +211,7 @@ describe("ActuacionDetailPage", () => {
     // Document filename appears
     expect(screen.getByText("poste-001.pdf")).toBeInTheDocument();
 
-    // Date formatted in es-ES
-    expect(
-      screen.getByText(
-        new Date("2024-03-15T10:00:00.000Z").toLocaleDateString("es-ES"),
-      ),
-    ).toBeInTheDocument();
+    // Uploader name appears in the document card
+    expect(screen.getByText(/Subido por Ana García/i)).toBeInTheDocument();
   });
 });

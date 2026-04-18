@@ -13,6 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FileUploadZone } from "@/components/documents/file-upload-zone";
+import { DocumentCard } from "@/components/documents/document-card";
 import type { Folder } from "@minidrive/shared";
 
 const FOLDERS: Folder[] = ["postes", "camaras", "fachadas", "fotos", "pets", "planos"];
@@ -26,18 +28,13 @@ const FOLDER_LABELS: Record<Folder, string> = {
   planos: "Planos",
 };
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 interface DocumentListProps {
   actuacionId: string;
   folder: Folder;
+  canDelete: boolean;
 }
 
-function DocumentList({ actuacionId, folder }: DocumentListProps) {
+function DocumentList({ actuacionId, folder, canDelete }: DocumentListProps) {
   const { data, isLoading } = useDocuments(actuacionId, folder);
 
   if (isLoading) {
@@ -59,33 +56,10 @@ function DocumentList({ actuacionId, folder }: DocumentListProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="pb-2 font-medium">Nombre</th>
-            <th className="pb-2 font-medium">Tamaño</th>
-            <th className="pb-2 font-medium">Subido por</th>
-            <th className="pb-2 font-medium">Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((doc) => (
-            <tr key={doc.id} className="border-b last:border-0">
-              <td className="py-2 pr-4 font-medium">{doc.filename}</td>
-              <td className="py-2 pr-4 text-muted-foreground">
-                {formatFileSize(doc.size)}
-              </td>
-              <td className="py-2 pr-4 text-muted-foreground">
-                {doc.uploadedByName}
-              </td>
-              <td className="py-2 text-muted-foreground">
-                {new Date(doc.uploadedAt).toLocaleDateString("es-ES")}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-2">
+      {data.map((doc) => (
+        <DocumentCard key={doc.id} document={doc} canDelete={canDelete} />
+      ))}
     </div>
   );
 }
@@ -101,6 +75,9 @@ export function ActuacionDetailPage() {
   const toggleColiseo = useToggleColiseo();
 
   const canToggleColiseo =
+    user?.role === "superadmin" || user?.role === "admin";
+
+  const canDelete =
     user?.role === "superadmin" || user?.role === "admin";
 
   function handleColiseoToggle() {
@@ -210,7 +187,12 @@ export function ActuacionDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DocumentList actuacionId={actuacion.id} folder={selectedFolder} />
+            <FileUploadZone actuacionId={actuacion.id} folder={selectedFolder} />
+            <DocumentList
+              actuacionId={actuacion.id}
+              folder={selectedFolder}
+              canDelete={canDelete}
+            />
           </CardContent>
         </Card>
       ) : (
