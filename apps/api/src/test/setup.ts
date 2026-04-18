@@ -4,6 +4,7 @@ import authPlugin from "../plugins/auth.js";
 import authRoutes from "../routes/auth-routes.js";
 import userRoutes from "../routes/user-routes.js";
 import actuacionRoutes from "../routes/actuacion-routes.js";
+import documentRoutes from "../routes/document-routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
@@ -17,6 +18,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(authRoutes);
   await app.register(userRoutes);
   await app.register(actuacionRoutes);
+  await app.register(documentRoutes);
 
   app.get("/api/health", async () => {
     return { status: "ok" };
