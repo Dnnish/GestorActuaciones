@@ -13,6 +13,9 @@ const documentRoutes: FastifyPluginAsync = async (app) => {
   // List documents by folder
   app.get("/api/actuaciones/:actuacionId/documents", documentHandler.list);
 
+  // Download document
+  app.get("/api/documents/:id/download", documentHandler.download);
+
   // Delete document (superadmin and admin only)
   app.delete(
     "/api/documents/:id",

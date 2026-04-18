@@ -17,6 +17,17 @@ export const actuacionService = {
     return actuacionRepository.create({ name, createdById });
   },
 
+  async updateColiseoStatus(id: string, status: boolean, requesterRole: string) {
+    if (!["superadmin", "admin"].includes(requesterRole)) {
+      throw new ForbiddenError("No tienes permisos para cambiar el estado coliseo");
+    }
+
+    const actuacion = await actuacionRepository.findById(id);
+    if (!actuacion) return null;
+
+    return actuacionRepository.updateColiseoStatus(id, status);
+  },
+
   async delete(id: string, requesterId: string, requesterRole: string) {
     const actuacion = await actuacionRepository.findById(id);
     if (!actuacion) return null;

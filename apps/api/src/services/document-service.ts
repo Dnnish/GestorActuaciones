@@ -2,6 +2,7 @@ import type { Folder } from "@minidrive/shared";
 import { isValidMimeType } from "@minidrive/shared";
 import { documentRepository } from "../repositories/document-repository.js";
 import { storageService } from "./storage-service.js";
+import { imageService } from "./image-service.js";
 
 export const documentService = {
   async upload(data: {
@@ -18,17 +19,25 @@ export const documentService = {
       );
     }
 
-    const storageKey = `${data.actuacionId}/${data.folder}/${Date.now()}-${data.filename}`;
+    let { buffer, filename, mimeType } = data;
 
-    await storageService.upload(storageKey, data.buffer, data.mimeType);
+    if (data.folder === "pets" && !imageService.isJpeg(mimeType)) {
+      buffer = await imageService.convertToJpg(buffer);
+      filename = imageService.replaceExtensionWithJpg(filename);
+      mimeType = "image/jpeg";
+    }
+
+    const storageKey = `${data.actuacionId}/${data.folder}/${Date.now()}-${filename}`;
+
+    await storageService.upload(storageKey, buffer, mimeType);
 
     const document = await documentRepository.create({
       actuacionId: data.actuacionId,
       folder: data.folder,
-      filename: data.filename,
+      filename,
       storageKey,
-      mimeType: data.mimeType,
-      size: data.buffer.length,
+      mimeType,
+      size: buffer.length,
       uploadedById: data.uploadedById,
     });
 
@@ -37,6 +46,14 @@ export const documentService = {
 
   async listByFolder(actuacionId: string, folder: string) {
     return documentRepository.findByActuacionAndFolder(actuacionId, folder);
+  },
+
+  async download(id: string) {
+    const document = await documentRepository.findById(id);
+    if (!document) return null;
+
+    const stream = await storageService.download(document.storageKey);
+    return { document, stream };
   },
 
   async remove(id: string) {

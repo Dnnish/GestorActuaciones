@@ -70,6 +70,26 @@ export const documentHandler = {
     return reply.send(docs);
   },
 
+  async download(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+  ) {
+    const result = await documentService.download(request.params.id);
+    if (!result) {
+      return reply.code(404).send({ error: "Documento no encontrado" });
+    }
+
+    const { document, stream } = result;
+
+    return reply
+      .header("Content-Type", document.mimeType)
+      .header(
+        "Content-Disposition",
+        `attachment; filename="${document.filename}"`,
+      )
+      .send(stream);
+  },
+
   async remove(
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,

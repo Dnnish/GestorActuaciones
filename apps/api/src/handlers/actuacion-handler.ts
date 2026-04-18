@@ -35,6 +35,33 @@ export const actuacionHandler = {
     return reply.code(201).send(actuacion);
   },
 
+  async updateColiseo(
+    request: FastifyRequest<{ Params: { id: string }; Body: { status: boolean } }>,
+    reply: FastifyReply,
+  ) {
+    const { status } = request.body as { status: boolean };
+    if (typeof status !== "boolean") {
+      return reply.code(400).send({ error: "El campo status es requerido y debe ser booleano" });
+    }
+
+    try {
+      const actuacion = await actuacionService.updateColiseoStatus(
+        request.params.id,
+        status,
+        request.user.role,
+      );
+      if (!actuacion) {
+        return reply.code(404).send({ error: "Actuacion no encontrada" });
+      }
+      return reply.send(actuacion);
+    } catch (err) {
+      if (err instanceof ForbiddenError) {
+        return reply.code(403).send({ error: err.message });
+      }
+      throw err;
+    }
+  },
+
   async remove(
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,

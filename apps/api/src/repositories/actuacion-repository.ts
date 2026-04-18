@@ -84,6 +84,15 @@ export const actuacionRepository = {
     return result[0];
   },
 
+  async updateColiseoStatus(id: string, status: boolean) {
+    const result = await db
+      .update(actuaciones)
+      .set({ coliseoStatus: status })
+      .where(eq(actuaciones.id, id))
+      .returning();
+    return result[0] ?? null;
+  },
+
   async deleteById(id: string) {
     await db.delete(actuaciones).where(eq(actuaciones.id, id));
   },
