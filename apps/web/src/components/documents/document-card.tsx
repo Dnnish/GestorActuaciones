@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDeleteDocument } from "@/hooks/use-documents";
+import { PdfViewer } from "@/components/documents/pdf-viewer";
+import { ImagePreview } from "@/components/documents/image-preview";
 import type { Document } from "@/hooks/use-documents";
 
 interface DocumentCardProps {
@@ -50,12 +52,37 @@ function FileIcon({ mimeType }: { mimeType: string }) {
   return <File className="h-5 w-5 shrink-0 text-muted-foreground" />;
 }
 
+type PreviewType = "pdf" | "image" | null;
+
+function resolvePreviewType(mimeType: string): PreviewType {
+  if (mimeType === "application/pdf") return "pdf";
+  if (mimeType.startsWith("image/")) return "image";
+  return null;
+}
+
 export function DocumentCard({ document: doc, canDelete }: DocumentCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const deleteDocument = useDeleteDocument();
 
-  function handleDownload() {
+  const previewType = resolvePreviewType(doc.mimeType);
+
+  function handleCardClick() {
+    if (previewType !== null) {
+      setPreviewOpen(true);
+    } else {
+      window.open(`/api/documents/${doc.id}/download`, "_blank");
+    }
+  }
+
+  function handleDownload(e: React.MouseEvent) {
+    e.stopPropagation();
     window.open(`/api/documents/${doc.id}/download`, "_blank");
+  }
+
+  function handleDeleteClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    setShowDeleteDialog(true);
   }
 
   function handleDeleteConfirm() {
@@ -75,7 +102,19 @@ export function DocumentCard({ document: doc, canDelete }: DocumentCardProps) {
 
   return (
     <>
-      <div className="flex items-center gap-3 rounded-md border p-3 transition-colors hover:bg-muted/30">
+      <div
+        className="flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-colors hover:bg-muted/30"
+        onClick={handleCardClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
+        aria-label={`Previsualizar ${doc.filename}`}
+      >
         <FileIcon mimeType={doc.mimeType} />
 
         <div className="min-w-0 flex-1">
@@ -102,7 +141,7 @@ export function DocumentCard({ document: doc, canDelete }: DocumentCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowDeleteDialog(true)}
+              onClick={handleDeleteClick}
               aria-label={`Eliminar ${doc.filename}`}
               className="text-destructive hover:text-destructive"
             >
@@ -111,6 +150,14 @@ export function DocumentCard({ document: doc, canDelete }: DocumentCardProps) {
           )}
         </div>
       </div>
+
+      {previewType === "pdf" && (
+        <PdfViewer open={previewOpen} onOpenChange={setPreviewOpen} document={doc} />
+      )}
+
+      {previewType === "image" && (
+        <ImagePreview open={previewOpen} onOpenChange={setPreviewOpen} document={doc} />
+      )}
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
