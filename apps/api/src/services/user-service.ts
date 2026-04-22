@@ -1,5 +1,7 @@
 import type { CreateUserInput, UpdateUserInput } from "@minidrive/shared";
 import { codeToEmail } from "@minidrive/shared";
+import { db, sessions } from "@minidrive/db";
+import { eq } from "drizzle-orm";
 import { userRepository } from "../repositories/user-repository.js";
 import { auth } from "../lib/auth.js";
 
@@ -78,6 +80,9 @@ export const userService = {
     }
 
     const deleted = await userRepository.softDelete(id);
+    if (deleted) {
+      await db.delete(sessions).where(eq(sessions.userId, id));
+    }
     return deleted ? sanitizeUser(deleted) : null;
   },
 

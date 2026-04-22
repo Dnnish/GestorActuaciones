@@ -21,6 +21,9 @@ async function request<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+    }
     let message = response.statusText;
     try {
       const data = (await response.json()) as { message?: string; error?: string };

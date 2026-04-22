@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { FileText, Users, LogOut, Menu, X, Image, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -29,6 +29,15 @@ export function AppLayout() {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    async function handleUnauthorized() {
+      await logout();
+      navigate("/login", { replace: true });
+    }
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, []);
 
   async function handleLogout() {
     await logout();
