@@ -63,6 +63,7 @@ describe("PetsPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -85,6 +86,7 @@ describe("PetsPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -108,6 +110,7 @@ describe("PetsPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -129,6 +132,7 @@ describe("PetsPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -145,6 +149,7 @@ describe("PetsPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -166,6 +171,7 @@ describe("PetsPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });

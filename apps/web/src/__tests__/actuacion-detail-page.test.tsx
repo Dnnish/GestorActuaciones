@@ -77,7 +77,7 @@ describe("ActuacionDetailPage", () => {
     vi.mocked(useActuacion).mockReturnValue({
       data: mockActuacion,
       isLoading: false,
-    } as ReturnType<typeof useActuacion>);
+    } as any);
 
     vi.mocked(useDocuments).mockReturnValue({
       data: [],
@@ -94,6 +94,7 @@ describe("ActuacionDetailPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -121,7 +122,7 @@ describe("ActuacionDetailPage", () => {
     vi.mocked(useActuacion).mockReturnValue({
       data: mockActuacion,
       isLoading: false,
-    } as ReturnType<typeof useActuacion>);
+    } as any);
 
     vi.mocked(useDocuments).mockReturnValue({
       data: [],
@@ -139,6 +140,7 @@ describe("ActuacionDetailPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -162,6 +164,7 @@ describe("ActuacionDetailPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });
@@ -179,7 +182,7 @@ describe("ActuacionDetailPage", () => {
     vi.mocked(useActuacion).mockReturnValue({
       data: mockActuacion,
       isLoading: false,
-    } as ReturnType<typeof useActuacion>);
+    } as any);
 
     vi.mocked(useDocuments).mockReturnValue({
       data: mockDocuments,
@@ -196,6 +199,7 @@ describe("ActuacionDetailPage", () => {
       isLoading: false,
       isAuthenticated: true,
       error: null,
+      userCode: "test",
       login: vi.fn(),
       logout: vi.fn(),
     });

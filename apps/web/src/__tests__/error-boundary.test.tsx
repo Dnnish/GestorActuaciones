@@ -44,6 +44,7 @@ function mockAuthUser() {
     isLoading: false,
     isAuthenticated: true,
     error: null,
+    userCode: "test",
     login: vi.fn(),
     logout: vi.fn(),
   });
@@ -88,7 +89,7 @@ describe("ActuacionesPage — estados de carga y vacío", () => {
     vi.mocked(useActuaciones).mockReturnValue({
       data: { data: [], total: 0, page: 1, limit: 20 },
       isLoading: false,
-    } as ReturnType<typeof useActuaciones>);
+    } as any);
 
     mockAuthUser();
 
@@ -103,7 +104,7 @@ describe("ActuacionesPage — estados de carga y vacío", () => {
     vi.mocked(useActuaciones).mockReturnValue({
       data: undefined,
       isLoading: true,
-    } as ReturnType<typeof useActuaciones>);
+    } as any);
 
     mockAuthUser();
 

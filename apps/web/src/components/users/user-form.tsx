@@ -46,7 +46,7 @@ export function UserForm(props: UserFormProps) {
   const { mode, defaultValues, onCancel, isSubmitting } = props;
 
   const createForm = useForm<CreateUserInput>({
-    resolver: zodResolver(createUserSchema),
+    resolver: zodResolver(createUserSchema) as any,
     defaultValues: mode === "create" ? defaultValues : undefined,
   });
 
