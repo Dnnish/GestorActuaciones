@@ -27,12 +27,12 @@ import {
 import { UserForm } from "@/components/users/user-form";
 import { DeleteUserDialog } from "@/components/users/delete-user-dialog";
 import { z } from "zod";
-import { updateUserSchema } from "@minidrive/shared";
+import { updateUserSchema, emailToCode } from "@minidrive/shared";
 import { cn } from "@/lib/utils";
 
 const editUserSchema = updateUserSchema.extend({
   name: z.string().min(1, "El nombre es requerido").max(255),
-  email: z.string().email("Email invalido"),
+  code: z.string().regex(/^\d{7,15}$/, "El código debe tener entre 7 y 15 dígitos"),
 });
 
 type EditUserInput = z.infer<typeof editUserSchema>;
@@ -45,11 +45,11 @@ type DialogState =
 function getRoleBadgeClass(role: User["role"]): string {
   switch (role) {
     case "superadmin":
-      return "bg-red-100 text-red-800";
+      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
     case "admin":
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
     case "user":
-      return "bg-green-100 text-green-800";
+      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
   }
 }
 
@@ -116,7 +116,7 @@ export function UsersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Código</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Fecha de creación</TableHead>
@@ -127,7 +127,7 @@ export function UsersPage() {
             {users?.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell>{emailToCode(user.email)}</TableCell>
                 <TableCell>
                   <Badge
                     className={cn(
@@ -140,11 +140,11 @@ export function UsersPage() {
                 </TableCell>
                 <TableCell>
                   {user.deletedAt ? (
-                    <Badge className="border-transparent bg-gray-100 text-gray-600">
+                    <Badge className="border-transparent bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                       Eliminado
                     </Badge>
                   ) : (
-                    <Badge className="border-transparent bg-green-100 text-green-800">
+                    <Badge className="border-transparent bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                       Activo
                     </Badge>
                   )}
@@ -210,7 +210,7 @@ export function UsersPage() {
               mode="edit"
               defaultValues={{
                 name: dialogState.user.name,
-                email: dialogState.user.email,
+                code: emailToCode(dialogState.user.email),
                 role: dialogState.user.role,
               }}
               onSubmit={(values) => void handleEdit(values as EditUserInput)}

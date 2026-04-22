@@ -14,10 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Edit mode schema: same as updateUserSchema but name and email are required
+// Edit mode schema: same as updateUserSchema but name and code are required
 const editUserSchema = updateUserSchema.extend({
   name: z.string().min(1, "El nombre es requerido").max(255),
-  email: z.string().email("Email invalido"),
+  code: z.string().regex(/^\d{7,15}$/, "El código debe tener entre 7 y 15 dígitos"),
 });
 
 type EditUserInput = z.infer<typeof editUserSchema>;
@@ -86,15 +86,16 @@ export function UserForm(props: UserFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Correo electrónico</Label>
+          <Label htmlFor="code">Código</Label>
           <Input
-            id="email"
-            type="email"
-            placeholder="usuario@ejemplo.com"
-            {...register("email")}
+            id="code"
+            type="text"
+            inputMode="numeric"
+            placeholder="0167271325"
+            {...register("code")}
           />
-          {errors.email && (
-            <p className="text-sm text-destructive">{errors.email.message}</p>
+          {errors.code && (
+            <p className="text-sm text-destructive">{errors.code.message}</p>
           )}
         </div>
 
@@ -178,15 +179,16 @@ export function UserForm(props: UserFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">Correo electrónico</Label>
+        <Label htmlFor="code">Código</Label>
         <Input
-          id="email"
-          type="email"
-          placeholder="usuario@ejemplo.com"
-          {...register("email")}
+          id="code"
+          type="text"
+          inputMode="numeric"
+          placeholder="0167271325"
+          {...register("code")}
         />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
+        {errors.code && (
+          <p className="text-sm text-destructive">{errors.code.message}</p>
         )}
       </div>
 

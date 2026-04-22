@@ -21,7 +21,7 @@ vi.mock("@/hooks/use-auth", () => ({
 }));
 
 function makeUser(role: AuthUser["role"]): AuthUser {
-  return { id: "1", name: "Test User", email: "test@test.com", role };
+  return { id: "1", name: "Test User", email: "1234567890@minidrive.com", role };
 }
 
 function renderLayout() {
@@ -42,6 +42,7 @@ describe("AppLayout", () => {
     mockUseAuth.mockReturnValue({
       user: makeUser("user"),
       isLoading: false,
+      userCode: "1234567890",
       isAuthenticated: true,
       logout: vi.fn(),
     });
@@ -57,6 +58,7 @@ describe("AppLayout", () => {
     mockUseAuth.mockReturnValue({
       user: makeUser("superadmin"),
       isLoading: false,
+      userCode: "1234567890",
       isAuthenticated: true,
       logout: vi.fn(),
     });
@@ -71,6 +73,7 @@ describe("AppLayout", () => {
     mockUseAuth.mockReturnValue({
       user: makeUser("user"),
       isLoading: false,
+      userCode: "1234567890",
       isAuthenticated: true,
       logout: vi.fn(),
     });
@@ -84,6 +87,7 @@ describe("AppLayout", () => {
     mockUseAuth.mockReturnValue({
       user: makeUser("admin"),
       isLoading: false,
+      userCode: "1234567890",
       isAuthenticated: true,
       logout: vi.fn(),
     });
@@ -97,6 +101,7 @@ describe("AppLayout", () => {
     mockUseAuth.mockReturnValue({
       user: makeUser("admin"),
       isLoading: false,
+      userCode: "1234567890",
       isAuthenticated: true,
       logout: vi.fn(),
     });

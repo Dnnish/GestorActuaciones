@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { codeToEmail, emailToCode } from "@minidrive/shared";
 
 export type UserRole = "superadmin" | "admin" | "user";
 
@@ -31,7 +32,7 @@ export function useAuth() {
     queryKey: ME_QUERY_KEY,
     queryFn: async () => {
       try {
-        const response = await apiClient.get<MeResponse>("/api/auth/me");
+        const response = await apiClient.get<MeResponse>("/api/auth/get-session");
         return response.user;
       } catch {
         return null;
@@ -44,7 +45,8 @@ export function useAuth() {
   const isAuthenticated = data != null;
   const user = data ?? null;
 
-  async function login(email: string, password: string): Promise<AuthUser> {
+  async function login(code: string, password: string): Promise<AuthUser> {
+    const email = codeToEmail(code);
     const response = await apiClient.post<SignInResponse>(
       "/api/auth/sign-in/email",
       { email, password },
@@ -52,6 +54,9 @@ export function useAuth() {
     queryClient.setQueryData(ME_QUERY_KEY, response.user);
     return response.user;
   }
+
+  /** User's code (email without @minidrive.com suffix) */
+  const userCode = user ? emailToCode(user.email) : null;
 
   async function logout(): Promise<void> {
     await apiClient.post("/api/auth/sign-out");
@@ -61,6 +66,7 @@ export function useAuth() {
 
   return {
     user,
+    userCode,
     isLoading,
     isAuthenticated,
     error,

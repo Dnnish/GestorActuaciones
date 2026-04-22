@@ -21,17 +21,27 @@ interface ActuacionesResponse {
 
 const ACTUACIONES_QUERY_KEY = ["actuaciones"] as const;
 
-export function useActuaciones(page: number, limit: number, search?: string) {
+export function useActuaciones(
+  page: number,
+  limit: number,
+  search?: string,
+  sortBy = "date",
+  sortOrder = "desc",
+  coliseoStatus = "all",
+) {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
+    sortBy,
+    sortOrder,
+    coliseoStatus,
   });
   if (search && search.trim() !== "") {
     params.set("search", search.trim());
   }
 
   return useQuery<ActuacionesResponse>({
-    queryKey: [...ACTUACIONES_QUERY_KEY, { page, limit, search }],
+    queryKey: [...ACTUACIONES_QUERY_KEY, { page, limit, search, sortBy, sortOrder, coliseoStatus }],
     queryFn: () =>
       apiClient.get<ActuacionesResponse>(`/api/actuaciones?${params.toString()}`),
   });
@@ -43,6 +53,18 @@ export function useCreateActuacion() {
   return useMutation({
     mutationFn: (input: CreateActuacionInput) =>
       apiClient.post<Actuacion>("/api/actuaciones", input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ACTUACIONES_QUERY_KEY });
+    },
+  });
+}
+
+export function useRenameActuacion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      apiClient.patch<Actuacion>(`/api/actuaciones/${id}`, { name }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ACTUACIONES_QUERY_KEY });
     },

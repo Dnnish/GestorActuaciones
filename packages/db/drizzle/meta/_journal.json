@@ -22,6 +22,34 @@
       "when": 1776511776565,
       "tag": "0002_past_joshua_kane",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776747131719,
+      "tag": "0003_stiff_trish_tilby",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776798788879,
+      "tag": "0004_tough_vision",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776801207482,
+      "tag": "0005_orange_obadiah_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776845085746,
+      "tag": "0006_daily_cardiac",
+      "breakpoints": true
     }
   ]
 }

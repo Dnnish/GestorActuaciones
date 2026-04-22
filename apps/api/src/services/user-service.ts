@@ -1,4 +1,5 @@
 import type { CreateUserInput, UpdateUserInput } from "@minidrive/shared";
+import { codeToEmail } from "@minidrive/shared";
 import { userRepository } from "../repositories/user-repository.js";
 import { auth } from "../lib/auth.js";
 
@@ -15,14 +16,15 @@ export const userService = {
   },
 
   async create(input: CreateUserInput) {
-    const existing = await userRepository.findByEmail(input.email);
+    const email = codeToEmail(input.code);
+    const existing = await userRepository.findByEmail(email);
     if (existing) {
-      throw new ConflictError("Ya existe un usuario con ese email");
+      throw new ConflictError("Ya existe un usuario con ese código");
     }
 
     const result = await auth.api.signUpEmail({
       body: {
-        email: input.email,
+        email,
         password: input.password,
         name: input.name,
       },
@@ -44,14 +46,22 @@ export const userService = {
     const user = await userRepository.findById(id);
     if (!user) return null;
 
-    if (input.email && input.email !== user.email) {
-      const existing = await userRepository.findByEmail(input.email);
-      if (existing) {
-        throw new ConflictError("Ya existe un usuario con ese email");
+    const updateData: Record<string, unknown> = {};
+    if (input.name) updateData.name = input.name;
+    if (input.role) updateData.role = input.role;
+
+    if (input.code) {
+      const email = codeToEmail(input.code);
+      if (email !== user.email) {
+        const existing = await userRepository.findByEmail(email);
+        if (existing) {
+          throw new ConflictError("Ya existe un usuario con ese código");
+        }
+        updateData.email = email;
       }
     }
 
-    const updated = await userRepository.updateById(id, input);
+    const updated = await userRepository.updateById(id, updateData);
     return updated ? sanitizeUser(updated) : null;
   },
 

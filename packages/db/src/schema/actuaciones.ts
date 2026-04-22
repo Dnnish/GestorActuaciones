@@ -1,4 +1,4 @@
-import { pgTable, varchar, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 import { users } from "./users";
 
@@ -11,6 +11,7 @@ export const actuaciones = pgTable("actuaciones", {
     .notNull()
     .references(() => users.id),
   coliseoStatus: boolean("coliseo_status").notNull().default(false),
+  folderColiseoStatuses: jsonb("folder_coliseo_statuses").$type<Record<string, boolean>>().notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

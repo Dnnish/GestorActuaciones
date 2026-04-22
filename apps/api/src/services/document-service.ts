@@ -2,6 +2,7 @@ import type { Folder } from "@minidrive/shared";
 import { isValidMimeType } from "@minidrive/shared";
 import { documentRepository } from "../repositories/document-repository.js";
 import { storageService } from "./storage-service.js";
+import { zipService } from "./zip-service.js";
 
 export const documentService = {
   async upload(data: {
@@ -12,7 +13,7 @@ export const documentService = {
     buffer: Buffer;
     uploadedById: string;
   }) {
-    if (!isValidMimeType(data.folder, data.mimeType)) {
+    if (!isValidMimeType(data.folder, data.mimeType, data.filename)) {
       throw new InvalidMimeTypeError(
         `Formato ${data.mimeType} no permitido para la carpeta ${data.folder}`,
       );
@@ -49,6 +50,55 @@ export const documentService = {
     return { document, stream };
   },
 
+  async downloadFolder(actuacionId: string, folder: string) {
+    const docs = await documentRepository.findByActuacionAndFolder(actuacionId, folder);
+    if (docs.length === 0) return null;
+
+    const entries = docs.map((doc) => ({
+      filename: doc.filename,
+      storageKey: doc.storageKey,
+    }));
+
+    return {
+      folderName: folder,
+      stream: zipService.createZipStream(entries),
+    };
+  },
+
+  async downloadActuacion(actuacionId: string) {
+    const docs = await documentRepository.findByActuacion(actuacionId);
+    if (docs.length === 0) return null;
+
+    const entries = docs.map((doc) => ({
+      filename: `${doc.folder}/${doc.filename}`,
+      storageKey: doc.storageKey,
+    }));
+
+    return zipService.createZipStream(entries);
+  },
+
+  async bulkDownload(ids: string[]) {
+    const docs = await documentRepository.findByIds(ids);
+    if (docs.length === 0) return null;
+
+    const entries = docs.map((doc) => ({
+      filename: doc.filename,
+      storageKey: doc.storageKey,
+    }));
+
+    return zipService.createZipStream(entries);
+  },
+
+  async bulkRemove(ids: string[]) {
+    const docs = await documentRepository.findByIds(ids);
+    if (docs.length === 0) return [];
+
+    await Promise.all(docs.map((doc) => storageService.remove(doc.storageKey)));
+    await documentRepository.deleteByIds(ids);
+
+    return docs;
+  },
+
   async remove(id: string) {
     const document = await documentRepository.findById(id);
     if (!document) return null;
@@ -57,6 +107,10 @@ export const documentService = {
     await documentRepository.deleteById(id);
 
     return document;
+  },
+
+  async reorder(items: { id: string; sortOrder: number }[]) {
+    await documentRepository.reorder(items);
   },
 };
 

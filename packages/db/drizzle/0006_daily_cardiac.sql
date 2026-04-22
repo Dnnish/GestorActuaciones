@@ -1,0 +1,1 @@
+ALTER TABLE "actuaciones" ADD COLUMN "folder_coliseo_statuses" jsonb DEFAULT '{}'::jsonb NOT NULL;

@@ -65,14 +65,14 @@ describe("manejo global de errores", () => {
   });
 
   describe("violación de restricción de unicidad", () => {
-    it("POST /api/users con email duplicado devuelve 409", async () => {
+    it("POST /api/users con código duplicado devuelve 409", async () => {
       // Primera creación — debe pasar
       const first = await app.inject({
         method: "POST",
         url: "/api/users",
         headers: { cookie: superadminCookies },
         payload: {
-          email: "unique@test.com",
+          code: "5555555555",
           password: "12345678",
           name: "Original",
           role: "user",
@@ -80,13 +80,13 @@ describe("manejo global de errores", () => {
       });
       expect(first.statusCode).toBe(201);
 
-      // Segunda creación con el mismo email — debe fallar con 409
+      // Segunda creación con el mismo código — debe fallar con 409
       const second = await app.inject({
         method: "POST",
         url: "/api/users",
         headers: { cookie: superadminCookies },
         payload: {
-          email: "unique@test.com",
+          code: "5555555555",
           password: "12345678",
           name: "Duplicate",
           role: "user",

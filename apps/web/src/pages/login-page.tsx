@@ -16,10 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const loginSchema = z.object({
-  email: z
+  code: z
     .string()
-    .min(1, "El correo es requerido")
-    .email("Introduce un correo válido"),
+    .min(1, "El código es requerido")
+    .regex(/^\d{7,15}$/, "El código debe tener entre 7 y 15 dígitos"),
   password: z
     .string()
     .min(1, "La contraseña es requerida")
@@ -44,7 +44,7 @@ export function LoginPage() {
   async function onSubmit(values: LoginFormValues) {
     setServerError(null);
     try {
-      await login(values.email, values.password);
+      await login(values.code, values.password);
       navigate("/actuaciones", { replace: true });
     } catch (err) {
       if (err instanceof Error) {
@@ -76,18 +76,19 @@ export function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <Label htmlFor="email">Correo electrónico</Label>
+                  <Label htmlFor="code">Código</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="correo@empresa.com"
-                    autoComplete="email"
-                    aria-invalid={!!errors.email}
-                    {...register("email")}
+                    id="code"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0167271325"
+                    autoComplete="username"
+                    aria-invalid={!!errors.code}
+                    {...register("code")}
                   />
-                  {errors.email && (
+                  {errors.code && (
                     <p className="text-sm text-destructive" role="alert">
-                      {errors.email.message}
+                      {errors.code.message}
                     </p>
                   )}
                 </div>

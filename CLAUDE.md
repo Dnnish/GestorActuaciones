@@ -145,7 +145,7 @@ pnpm build                # Build de produccion
 
 ```env
 # Base de datos
-DATABASE_URL=postgresql://minidrive:minidrive@localhost:5433/minidrive
+DATABASE_URL=postgresql://postgres:dE09nN12iS@localhost:5432/minidrive
 
 # MinIO / S3
 S3_ENDPOINT=http://localhost:9000

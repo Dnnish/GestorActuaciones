@@ -3,9 +3,10 @@ import { eq } from "drizzle-orm";
 import { auth } from "./lib/auth.js";
 
 const SUPERADMIN = {
-  email: "admin@minidrive.com",
+  email: "0000000000@minidrive.com",
   password: "admin123",
   name: "Superadmin",
+  code: "0000000000",
 };
 
 async function seed() {
@@ -37,7 +38,7 @@ async function seed() {
     .set({ role: "superadmin" })
     .where(eq(users.email, SUPERADMIN.email));
 
-  console.log("Superadmin created: admin@minidrive.com / admin123");
+  console.log("Superadmin created: code 0000000000 / password admin123");
   process.exit(0);
 }
 

@@ -16,6 +16,7 @@ const ACCEPT_BY_FOLDER: Record<Folder, string> = {
   fachadas: "application/pdf",
   fotos: "image/*",
   planos: "application/pdf,.kmz",
+  arquetas: "image/*",
 };
 
 const FORMAT_LABEL_BY_FOLDER: Record<Folder, string> = {
@@ -24,6 +25,7 @@ const FORMAT_LABEL_BY_FOLDER: Record<Folder, string> = {
   fachadas: "Solo archivos PDF",
   fotos: "Imágenes (JPG, PNG, WEBP, etc.)",
   planos: "Archivos PDF y KMZ",
+  arquetas: "Imágenes (JPG, PNG, WEBP, etc.)",
 };
 
 export function FileUploadZone({ actuacionId, folder }: FileUploadZoneProps) {
@@ -31,40 +33,44 @@ export function FileUploadZone({ actuacionId, folder }: FileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const uploadDocument = useUploadDocument();
 
-  function handleFile(file: File) {
-    if (!isValidMimeType(folder, file.type)) {
-      toast.error("Formato no permitido para esta carpeta");
-      return;
+  function handleFiles(files: FileList | File[]) {
+    const valid: File[] = [];
+    for (const file of Array.from(files)) {
+      if (!isValidMimeType(folder, file.type, file.name)) {
+        toast.error(`Formato no permitido: ${file.name}`);
+      } else {
+        valid.push(file);
+      }
     }
 
-    uploadDocument.mutate(
-      { actuacionId, folder, file },
-      {
-        onSuccess: () => {
-          toast.success("Documento subido correctamente");
+    for (const file of valid) {
+      uploadDocument.mutate(
+        { actuacionId, folder, file },
+        {
+          onSuccess: () => {
+            toast.success(`${file.name} subido correctamente`);
+          },
+          onError: () => {
+            toast.error(`Error al subir ${file.name}`);
+          },
         },
-        onError: () => {
-          toast.error("Error al subir el documento");
-        },
-      },
-    );
+      );
+    }
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFile(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFiles(files);
     }
-    // Reset so same file can be re-uploaded after error
     e.target.value = "";
   }
 
   function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFile(file);
+    if (e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
     }
   }
 
@@ -114,7 +120,7 @@ export function FileUploadZone({ actuacionId, folder }: FileUploadZoneProps) {
           <>
             <Upload className="h-8 w-8 text-muted-foreground" />
             <p className="text-sm font-medium">
-              Haz clic o arrastra un archivo aquí
+              Haz clic o arrastra archivos aquí
             </p>
             <p className="text-xs text-muted-foreground">
               {FORMAT_LABEL_BY_FOLDER[folder]}
@@ -128,6 +134,7 @@ export function FileUploadZone({ actuacionId, folder }: FileUploadZoneProps) {
         type="file"
         className="hidden"
         accept={ACCEPT_BY_FOLDER[folder]}
+        multiple
         onChange={handleInputChange}
         aria-hidden="true"
       />

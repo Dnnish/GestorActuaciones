@@ -1,5 +1,5 @@
 import { db, documents, users } from "@minidrive/db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, asc, desc, inArray, sql } from "drizzle-orm";
 
 export const documentRepository = {
   async create(data: {
@@ -46,10 +46,48 @@ export const documentRepository = {
           eq(documents.folder, folder as "postes" | "camaras" | "fachadas" | "fotos" | "planos"),
         ),
       )
-      .orderBy(desc(documents.uploadedAt));
+      .orderBy(asc(documents.sortOrder), desc(documents.uploadedAt));
+  },
+
+  async findByActuacion(actuacionId: string) {
+    return db
+      .select({
+        id: documents.id,
+        actuacionId: documents.actuacionId,
+        folder: documents.folder,
+        filename: documents.filename,
+        storageKey: documents.storageKey,
+        mimeType: documents.mimeType,
+        size: documents.size,
+      })
+      .from(documents)
+      .where(eq(documents.actuacionId, actuacionId))
+      .orderBy(documents.folder, desc(documents.uploadedAt));
+  },
+
+  async findByIds(ids: string[]) {
+    if (ids.length === 0) return [];
+    return db.select().from(documents).where(inArray(documents.id, ids));
   },
 
   async deleteById(id: string) {
     await db.delete(documents).where(eq(documents.id, id));
+  },
+
+  async deleteByIds(ids: string[]) {
+    if (ids.length === 0) return;
+    await db.delete(documents).where(inArray(documents.id, ids));
+  },
+
+  async reorder(items: { id: string; sortOrder: number }[]) {
+    if (items.length === 0) return;
+    await db.transaction(async (tx) => {
+      for (const item of items) {
+        await tx
+          .update(documents)
+          .set({ sortOrder: item.sortOrder })
+          .where(eq(documents.id, item.id));
+      }
+    });
   },
 };

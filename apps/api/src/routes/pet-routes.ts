@@ -1,17 +1,28 @@
 import type { FastifyPluginAsync } from "fastify";
-import multipart from "@fastify/multipart";
 import authenticatePlugin from "../plugins/authenticate.js";
 import { petHandler } from "../handlers/pet-handler.js";
 
 const petRoutes: FastifyPluginAsync = async (app) => {
-  await app.register(multipart, { limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit
   await app.register(authenticatePlugin);
 
-  // Upload a PET image (all authenticated users)
-  app.post("/api/pets", petHandler.upload);
+  // Reorder PETs within a folder
+  app.patch("/api/pets/reorder", petHandler.reorder);
 
-  // List all PETs (all authenticated users)
-  app.get("/api/pets", petHandler.list);
+  // Bulk download PETs as ZIP
+  app.post("/api/pets/bulk-download", petHandler.bulkDownload);
+
+  // Bulk delete PETs (admin/superadmin only)
+  app.post(
+    "/api/pets/bulk-delete",
+    {
+      preHandler: async (request, reply) => {
+        if (!["superadmin", "admin"].includes(request.user.role)) {
+          return reply.code(403).send({ error: "No tienes permisos para esta accion" });
+        }
+      },
+    },
+    petHandler.bulkRemove,
+  );
 
   // Download a PET file (all authenticated users)
   app.get("/api/pets/:id/download", petHandler.download);
@@ -27,6 +38,19 @@ const petRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     petHandler.remove,
+  );
+
+  // Toggle coliseo status for a single pet (admin/superadmin only)
+  app.patch(
+    "/api/pets/:id/coliseo",
+    {
+      preHandler: async (request, reply) => {
+        if (!["superadmin", "admin"].includes(request.user.role)) {
+          return reply.code(403).send({ error: "No tienes permisos para esta accion" });
+        }
+      },
+    },
+    petHandler.toggleColiseo,
   );
 };
 

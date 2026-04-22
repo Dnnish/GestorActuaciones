@@ -4,14 +4,20 @@ import { ROLES, FOLDERS } from "./types.js";
 // --- User schemas ---
 
 export const createUserSchema = z.object({
-  email: z.string().email("Email invalido"),
+  code: z
+    .string()
+    .min(1, "El código es requerido")
+    .regex(/^\d{7,15}$/, "El código debe tener entre 7 y 15 dígitos numéricos"),
   password: z.string().min(8, "La password debe tener al menos 8 caracteres"),
   name: z.string().min(1, "El nombre es requerido").max(255),
   role: z.enum(ROLES).default("user"),
 });
 
 export const updateUserSchema = z.object({
-  email: z.string().email("Email invalido").optional(),
+  code: z
+    .string()
+    .regex(/^\d{7,15}$/, "El código debe tener entre 7 y 15 dígitos numéricos")
+    .optional(),
   name: z.string().min(1).max(255).optional(),
   role: z.enum(ROLES).optional(),
 });
@@ -39,6 +45,9 @@ export const paginationSchema = z.object({
 
 export const searchActuacionesSchema = paginationSchema.extend({
   search: z.string().optional(),
+  sortBy: z.enum(["date", "name"]).default("date"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  coliseoStatus: z.enum(["all", "true", "false"]).default("all"),
 });
 
 // --- Inferred types ---

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."folder" ADD VALUE 'arquetas';

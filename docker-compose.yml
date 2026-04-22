@@ -1,17 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: minidrive
-      POSTGRES_PASSWORD: minidrive
-      POSTGRES_DB: minidrive
-      POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_INITDB_ARGS: "--auth-host=trust"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   minio:
     image: minio/minio:latest
     ports:
@@ -25,5 +12,4 @@ services:
     command: server /data --console-address ":9001"
 
 volumes:
-  postgres_data:
   minio_data:

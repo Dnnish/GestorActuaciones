@@ -1,7 +1,10 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { folderSchema } from "@minidrive/shared";
 import type { Folder } from "@minidrive/shared";
-import { documentService, InvalidMimeTypeError } from "../services/document-service.js";
+import {
+  documentService,
+  InvalidMimeTypeError,
+} from "../services/document-service.js";
 
 export const documentHandler = {
   async upload(
@@ -99,5 +102,80 @@ export const documentHandler = {
       return reply.code(404).send({ error: "Documento no encontrado" });
     }
     return reply.send(document);
+  },
+
+  async downloadActuacion(request: FastifyRequest, reply: FastifyReply) {
+    const { actuacionId } = request.params as { actuacionId: string };
+
+    const stream = await documentService.downloadActuacion(actuacionId);
+    if (!stream) {
+      return reply.code(404).send({ error: "No hay documentos en esta actuación" });
+    }
+
+    return reply
+      .header("Content-Type", "application/zip")
+      .header("Content-Disposition", `attachment; filename="actuacion.zip"`)
+      .send(stream);
+  },
+
+  async bulkDownload(request: FastifyRequest, reply: FastifyReply) {
+    const { ids } = request.body as { ids?: string[] };
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return reply.code(400).send({ error: "Se requiere un array de IDs" });
+    }
+
+    const stream = await documentService.bulkDownload(ids);
+    if (!stream) {
+      return reply.code(404).send({ error: "No se encontraron documentos" });
+    }
+
+    return reply
+      .header("Content-Type", "application/zip")
+      .header("Content-Disposition", `attachment; filename="documentos.zip"`)
+      .send(stream);
+  },
+
+  async bulkRemove(request: FastifyRequest, reply: FastifyReply) {
+    const { ids } = request.body as { ids?: string[] };
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return reply.code(400).send({ error: "Se requiere un array de IDs" });
+    }
+
+    const removed = await documentService.bulkRemove(ids);
+    return reply.send({ deleted: removed.length });
+  },
+
+  async reorder(request: FastifyRequest, reply: FastifyReply) {
+    const { items } = request.body as { items?: { id: string; sortOrder: number }[] };
+    if (!items || !Array.isArray(items)) {
+      return reply.code(400).send({ error: "Se requiere un array de items con id y sortOrder" });
+    }
+    await documentService.reorder(items);
+    return reply.send({ ok: true });
+  },
+
+  async downloadFolder(request: FastifyRequest, reply: FastifyReply) {
+    const { actuacionId } = request.params as { actuacionId: string };
+    const { folder } = request.query as { folder?: string };
+
+    if (!folder) {
+      return reply.code(400).send({ error: "El parametro folder es requerido" });
+    }
+
+    const folderParsed = folderSchema.safeParse(folder);
+    if (!folderParsed.success) {
+      return reply.code(400).send({ error: "Carpeta invalida" });
+    }
+
+    const result = await documentService.downloadFolder(actuacionId, folderParsed.data);
+    if (!result) {
+      return reply.code(404).send({ error: "No hay documentos en esta carpeta" });
+    }
+
+    const zipName = `${result.folderName}.zip`;
+    return reply
+      .header("Content-Type", "application/zip")
+      .header("Content-Disposition", `attachment; filename="${zipName}"`)
+      .send(result.stream);
   },
 };

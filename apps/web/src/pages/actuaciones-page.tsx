@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Check, X, ChevronLeft, ChevronRight, ArrowUpDown, Filter } from "lucide-react";
 import {
   useActuaciones,
   useDeleteActuacion,
+  useRenameActuacion,
   type Actuacion,
 } from "@/hooks/use-actuaciones";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
@@ -96,6 +98,135 @@ function DeleteActuacionDialog({
   );
 }
 
+interface ActuacionCardProps {
+  actuacion: Actuacion;
+  canRename: boolean;
+  canDelete: boolean;
+  onClick: () => void;
+  onDelete: (e: React.MouseEvent) => void;
+}
+
+function ActuacionCard({ actuacion, canRename, canDelete, onClick, onDelete }: ActuacionCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(actuacion.name);
+  const renameActuacion = useRenameActuacion();
+
+  function handleRenameSubmit() {
+    const trimmed = editName.trim();
+    if (!trimmed || trimmed === actuacion.name) {
+      setIsEditing(false);
+      setEditName(actuacion.name);
+      return;
+    }
+    renameActuacion.mutate(
+      { id: actuacion.id, name: trimmed },
+      {
+        onSuccess: () => {
+          toast.success("Actuación renombrada");
+          setIsEditing(false);
+        },
+        onError: () => {
+          toast.error("Error al renombrar");
+          setEditName(actuacion.name);
+          setIsEditing(false);
+        },
+      },
+    );
+  }
+
+  return (
+    <Card
+      className="cursor-pointer transition-colors hover:bg-accent"
+      onClick={() => !isEditing && onClick()}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <ColiseoIndicator status={actuacion.coliseoStatus} />
+            {isEditing ? (
+              <div className="flex items-center gap-1 flex-1" onClick={(e) => e.stopPropagation()}>
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleRenameSubmit();
+                    if (e.key === "Escape") {
+                      setIsEditing(false);
+                      setEditName(actuacion.name);
+                    }
+                  }}
+                  className="h-7 text-sm font-semibold"
+                  autoFocus
+                  disabled={renameActuacion.isPending}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRenameSubmit}
+                  disabled={renameActuacion.isPending}
+                  aria-label="Confirmar"
+                  className="h-7 w-7 p-0"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditName(actuacion.name);
+                  }}
+                  disabled={renameActuacion.isPending}
+                  aria-label="Cancelar"
+                  className="h-7 w-7 p-0"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <CardTitle className="text-base">{actuacion.name}</CardTitle>
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            {!isEditing && canRename && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Renombrar ${actuacion.name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditName(actuacion.name);
+                  setIsEditing(true);
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Eliminar ${actuacion.name}`}
+                onClick={onDelete}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-4 text-sm text-muted-foreground">
+          <span>Creado por: {actuacion.createdByName}</span>
+          <span>
+            {new Date(actuacion.createdAt).toLocaleDateString("es-ES")}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ActuacionesPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -103,12 +234,15 @@ export function ActuacionesPage() {
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [coliseoFilter, setColiseoFilter] = useState("all");
 
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Actuacion | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const { data, isLoading } = useActuaciones(page, PAGE_LIMIT, debouncedSearch);
+  const { data, isLoading } = useActuaciones(page, PAGE_LIMIT, debouncedSearch, sortBy, sortOrder, coliseoFilter);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_LIMIT)) : 1;
 
@@ -119,6 +253,12 @@ export function ActuacionesPage() {
     if (user.role === "superadmin") return true;
     if (user.role === "admin") return actuacion.createdById === user.id;
     return false;
+  }
+
+  function canRename(actuacion: Actuacion): boolean {
+    if (!user) return false;
+    if (user.role === "superadmin" || user.role === "admin") return true;
+    return actuacion.createdById === user.id;
   }
 
   function handleSearchChange(value: string) {
@@ -148,14 +288,74 @@ export function ActuacionesPage() {
         )}
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          placeholder="Buscar actuaciones..."
-          value={searchInput}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
+      <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="Buscar actuaciones..."
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md border p-1">
+            <Filter className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
+            <Button
+              variant={coliseoFilter === "all" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => { setColiseoFilter("all"); setPage(1); }}
+            >
+              Todos
+            </Button>
+            <Button
+              variant={coliseoFilter === "false" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => { setColiseoFilter("false"); setPage(1); }}
+            >
+              Pendientes
+            </Button>
+            <Button
+              variant={coliseoFilter === "true" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => { setColiseoFilter("true"); setPage(1); }}
+            >
+              Subidos
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-1 rounded-md border p-1">
+            <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
+            <Button
+              variant={sortBy === "date" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => { setSortBy("date"); setPage(1); }}
+            >
+              Fecha
+            </Button>
+            <Button
+              variant={sortBy === "name" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => { setSortBy("name"); setPage(1); }}
+            >
+              Nombre
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => { setSortOrder(sortOrder === "desc" ? "asc" : "desc"); setPage(1); }}
+            >
+              {sortOrder === "desc" ? "↓" : "↑"}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {isLoading ? (
@@ -171,38 +371,14 @@ export function ActuacionesPage() {
       ) : (
         <div className="space-y-3">
           {data?.data.map((actuacion) => (
-            <Card
+            <ActuacionCard
               key={actuacion.id}
-              className="cursor-pointer transition-colors hover:bg-accent"
+              actuacion={actuacion}
+              canRename={canRename(actuacion)}
+              canDelete={canDelete(actuacion)}
               onClick={() => handleCardClick(actuacion.id)}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <ColiseoIndicator status={actuacion.coliseoStatus} />
-                    <CardTitle className="text-base">{actuacion.name}</CardTitle>
-                  </div>
-                  {canDelete(actuacion) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Eliminar ${actuacion.name}`}
-                      onClick={(e) => openDelete(actuacion, e)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4 text-sm text-muted-foreground">
-                  <span>Creado por: {actuacion.createdByName}</span>
-                  <span>
-                    {new Date(actuacion.createdAt).toLocaleDateString("es-ES")}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+              onDelete={(e) => openDelete(actuacion, e)}
+            />
           ))}
         </div>
       )}

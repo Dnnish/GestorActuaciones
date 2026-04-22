@@ -10,7 +10,7 @@ import {
 describe("createUserSchema", () => {
   it("accepts valid input", () => {
     const result = createUserSchema.safeParse({
-      email: "test@example.com",
+      code: "0167271325",
       password: "12345678",
       name: "Test User",
       role: "admin",
@@ -20,16 +20,25 @@ describe("createUserSchema", () => {
 
   it("defaults role to user", () => {
     const result = createUserSchema.parse({
-      email: "test@example.com",
+      code: "0167271325",
       password: "12345678",
       name: "Test User",
     });
     expect(result.role).toBe("user");
   });
 
-  it("rejects invalid email", () => {
+  it("rejects non-numeric code", () => {
     const result = createUserSchema.safeParse({
-      email: "not-an-email",
+      code: "abc1234567",
+      password: "12345678",
+      name: "Test",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects too short code", () => {
+    const result = createUserSchema.safeParse({
+      code: "123",
       password: "12345678",
       name: "Test",
     });
@@ -38,7 +47,7 @@ describe("createUserSchema", () => {
 
   it("rejects short password", () => {
     const result = createUserSchema.safeParse({
-      email: "test@example.com",
+      code: "0167271325",
       password: "123",
       name: "Test",
     });
@@ -47,7 +56,7 @@ describe("createUserSchema", () => {
 
   it("rejects empty name", () => {
     const result = createUserSchema.safeParse({
-      email: "test@example.com",
+      code: "0167271325",
       password: "12345678",
       name: "",
     });
@@ -56,7 +65,7 @@ describe("createUserSchema", () => {
 
   it("rejects invalid role", () => {
     const result = createUserSchema.safeParse({
-      email: "test@example.com",
+      code: "0167271325",
       password: "12345678",
       name: "Test",
       role: "root",
@@ -68,7 +77,7 @@ describe("createUserSchema", () => {
 describe("updateUserSchema", () => {
   it("accepts partial updates", () => {
     expect(updateUserSchema.safeParse({ name: "New Name" }).success).toBe(true);
-    expect(updateUserSchema.safeParse({ email: "new@test.com" }).success).toBe(true);
+    expect(updateUserSchema.safeParse({ code: "9876543210" }).success).toBe(true);
     expect(updateUserSchema.safeParse({ role: "admin" }).success).toBe(true);
   });
 
@@ -76,8 +85,8 @@ describe("updateUserSchema", () => {
     expect(updateUserSchema.safeParse({}).success).toBe(true);
   });
 
-  it("rejects invalid email", () => {
-    expect(updateUserSchema.safeParse({ email: "bad" }).success).toBe(false);
+  it("rejects non-numeric code", () => {
+    expect(updateUserSchema.safeParse({ code: "bad" }).success).toBe(false);
   });
 });
 

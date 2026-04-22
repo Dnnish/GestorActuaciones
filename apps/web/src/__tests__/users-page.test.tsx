@@ -21,7 +21,7 @@ const mockUsers = [
   {
     id: "1",
     name: "Ana García",
-    email: "ana@example.com",
+    email: "1111111111@minidrive.com",
     role: "superadmin" as const,
     createdAt: "2024-01-15T10:00:00.000Z",
     deletedAt: null,
@@ -29,7 +29,7 @@ const mockUsers = [
   {
     id: "2",
     name: "Carlos López",
-    email: "carlos@example.com",
+    email: "2222222222@minidrive.com",
     role: "admin" as const,
     createdAt: "2024-02-20T10:00:00.000Z",
     deletedAt: null,
@@ -37,7 +37,7 @@ const mockUsers = [
   {
     id: "3",
     name: "María Martínez",
-    email: "maria@example.com",
+    email: "3333333333@minidrive.com",
     role: "user" as const,
     createdAt: "2024-03-10T10:00:00.000Z",
     deletedAt: "2024-04-01T00:00:00.000Z",
@@ -63,18 +63,18 @@ describe("UsersPage", () => {
     renderWithQueryClient(<UsersPage />);
 
     expect(screen.getByText("Nombre")).toBeInTheDocument();
-    expect(screen.getByText("Email")).toBeInTheDocument();
+    expect(screen.getByText("Código")).toBeInTheDocument();
     expect(screen.getByText("Rol")).toBeInTheDocument();
     expect(screen.getByText("Estado")).toBeInTheDocument();
     expect(screen.getByText("Fecha de creación")).toBeInTheDocument();
 
-    // Verify user data renders
+    // Verify user data renders (codes without @minidrive.com)
     expect(screen.getByText("Ana García")).toBeInTheDocument();
-    expect(screen.getByText("ana@example.com")).toBeInTheDocument();
+    expect(screen.getByText("1111111111")).toBeInTheDocument();
     expect(screen.getByText("Carlos López")).toBeInTheDocument();
-    expect(screen.getByText("carlos@example.com")).toBeInTheDocument();
+    expect(screen.getByText("2222222222")).toBeInTheDocument();
     expect(screen.getByText("María Martínez")).toBeInTheDocument();
-    expect(screen.getByText("maria@example.com")).toBeInTheDocument();
+    expect(screen.getByText("3333333333")).toBeInTheDocument();
   });
 });
 

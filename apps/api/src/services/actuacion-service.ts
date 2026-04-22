@@ -1,8 +1,15 @@
 import { actuacionRepository } from "../repositories/actuacion-repository.js";
 
 export const actuacionService = {
-  async list(page: number, limit: number, search?: string) {
-    return actuacionRepository.findAll(page, limit, search);
+  async list(
+    page: number,
+    limit: number,
+    search?: string,
+    sortBy?: string,
+    sortOrder?: string,
+    coliseoStatus?: string,
+  ) {
+    return actuacionRepository.findAll(page, limit, search, sortBy, sortOrder, coliseoStatus);
   },
 
   async getById(id: string) {
@@ -15,6 +22,25 @@ export const actuacionService = {
 
   async create(name: string, createdById: string) {
     return actuacionRepository.create({ name, createdById });
+  },
+
+  async rename(id: string, name: string, requesterId: string, requesterRole: string) {
+    const actuacion = await actuacionRepository.findById(id);
+    if (!actuacion) return null;
+
+    // user role can only rename their own actuaciones
+    if (requesterRole === "user" && actuacion.createdById !== requesterId) {
+      throw new ForbiddenError("No tienes permisos para renombrar esta actuación");
+    }
+
+    return actuacionRepository.updateName(id, name);
+  },
+
+  async updateFolderColiseoStatus(id: string, folder: string, status: boolean, requesterRole: string) {
+    if (!["superadmin", "admin"].includes(requesterRole)) {
+      throw new ForbiddenError("No tienes permisos para cambiar el estado coliseo");
+    }
+    return actuacionRepository.updateFolderColiseoStatus(id, folder, status);
   },
 
   async updateColiseoStatus(id: string, status: boolean, requesterRole: string) {

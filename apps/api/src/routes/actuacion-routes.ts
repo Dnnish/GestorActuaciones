@@ -20,7 +20,9 @@ const actuacionRoutes: FastifyPluginAsync = async (app) => {
     actuacionHandler.create,
   );
 
+  app.patch("/api/actuaciones/:id", actuacionHandler.rename);
   app.patch("/api/actuaciones/:id/coliseo", actuacionHandler.updateColiseo);
+  app.patch("/api/actuaciones/:id/folders/:folder/coliseo", actuacionHandler.updateFolderColiseo);
 
   app.delete("/api/actuaciones/:id", actuacionHandler.remove);
 };

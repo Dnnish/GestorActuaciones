@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { FileText, Users, LogOut, Menu, X, Image } from "lucide-react";
+import { FileText, Users, LogOut, Menu, X, Image, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -24,7 +25,8 @@ function getInitials(name: string): string {
 }
 
 export function AppLayout() {
-  const { user, logout } = useAuth();
+  const { user, userCode, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -87,7 +89,27 @@ export function AppLayout() {
         )}
       </nav>
 
-      <div className="border-t border-sidebar-border p-3">
+      <div className="border-t border-sidebar-border p-3 space-y-2">
+        {/* Theme toggle */}
+        <div className="flex items-center justify-between rounded-md px-2 py-1">
+          <Sun className="h-3.5 w-3.5 text-sidebar-foreground/60" />
+          <button
+            role="switch"
+            aria-checked={theme === "dark"}
+            aria-label="Alternar modo oscuro"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-sidebar-accent transition-colors"
+          >
+            <span
+              className={cn(
+                "pointer-events-none inline-block h-4 w-4 rounded-full bg-sidebar-foreground shadow-sm transition-transform",
+                theme === "dark" ? "translate-x-4" : "translate-x-0",
+              )}
+            />
+          </button>
+          <Moon className="h-3.5 w-3.5 text-sidebar-foreground/60" />
+        </div>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-sidebar-accent">
@@ -101,7 +123,7 @@ export function AppLayout() {
                   {user?.name}
                 </p>
                 <p className="truncate text-xs text-sidebar-foreground/60">
-                  {user?.email}
+                  {userCode}
                 </p>
               </div>
             </button>
@@ -109,7 +131,7 @@ export function AppLayout() {
           <DropdownMenuContent side="top" align="start" className="w-56">
             <DropdownMenuLabel>
               <p className="font-medium">{user?.name}</p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
+              <p className="text-xs text-muted-foreground">{userCode}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">

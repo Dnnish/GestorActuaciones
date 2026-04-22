@@ -18,6 +18,8 @@ import type { Document } from "@/hooks/use-documents";
 interface DocumentCardProps {
   document: Document;
   canDelete: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 function formatFileSize(bytes: number): string {
@@ -60,7 +62,7 @@ function resolvePreviewType(mimeType: string): PreviewType {
   return null;
 }
 
-export function DocumentCard({ document: doc, canDelete }: DocumentCardProps) {
+export function DocumentCard({ document: doc, canDelete, selected, onToggleSelect }: DocumentCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const deleteDocument = useDeleteDocument();
@@ -115,7 +117,29 @@ export function DocumentCard({ document: doc, canDelete }: DocumentCardProps) {
         }}
         aria-label={`Previsualizar ${doc.filename}`}
       >
-        <FileIcon mimeType={doc.mimeType} />
+        {onToggleSelect && (
+          <input
+            type="checkbox"
+            checked={selected ?? false}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggleSelect(doc.id);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="h-4 w-4 shrink-0 rounded border-gray-300 dark:border-gray-600"
+            aria-label={`Seleccionar ${doc.filename}`}
+          />
+        )}
+        {doc.mimeType.startsWith("image/") ? (
+          <img
+            src={`/api/documents/${doc.id}/download`}
+            alt={doc.filename}
+            className="h-10 w-10 shrink-0 rounded object-cover bg-muted"
+            loading="lazy"
+          />
+        ) : (
+          <FileIcon mimeType={doc.mimeType} />
+        )}
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium" title={doc.filename}>

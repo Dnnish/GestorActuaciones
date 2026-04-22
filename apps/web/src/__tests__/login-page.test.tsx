@@ -19,6 +19,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 vi.mock("@/hooks/use-auth", () => ({
   useAuth: () => ({
     user: null,
+    userCode: null,
     isLoading: false,
     isAuthenticated: false,
     login: vi.fn(),
@@ -40,10 +41,10 @@ function renderLoginPage() {
 }
 
 describe("LoginPage", () => {
-  it("renders email and password fields", () => {
+  it("renders code and password fields", () => {
     renderLoginPage();
 
-    expect(screen.getByLabelText(/correo electrónico/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/código/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
   });
 
@@ -55,7 +56,7 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows validation error when submitting empty email", async () => {
+  it("shows validation error when submitting empty code", async () => {
     const user = userEvent.setup();
     renderLoginPage();
 
@@ -63,7 +64,7 @@ describe("LoginPage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/el correo es requerido/i),
+        screen.getByText(/el código es requerido/i),
       ).toBeInTheDocument();
     });
   });
@@ -81,16 +82,16 @@ describe("LoginPage", () => {
     });
   });
 
-  it("shows validation error for invalid email format", async () => {
+  it("shows validation error for non-numeric code", async () => {
     const user = userEvent.setup();
     renderLoginPage();
 
-    await user.type(screen.getByLabelText(/correo electrónico/i), "not-an-email");
+    await user.type(screen.getByLabelText(/código/i), "abcdefghij");
     await user.click(screen.getByRole("button", { name: /iniciar sesión/i }));
 
     await waitFor(() => {
       expect(
-        screen.getByText(/introduce un correo válido/i),
+        screen.getByText(/entre 7 y 15 dígitos/i),
       ).toBeInTheDocument();
     });
   });
@@ -99,7 +100,7 @@ describe("LoginPage", () => {
     const user = userEvent.setup();
     renderLoginPage();
 
-    await user.type(screen.getByLabelText(/correo electrónico/i), "test@test.com");
+    await user.type(screen.getByLabelText(/código/i), "0167271325");
     await user.type(screen.getByLabelText(/contraseña/i), "abc");
     await user.click(screen.getByRole("button", { name: /iniciar sesión/i }));
 

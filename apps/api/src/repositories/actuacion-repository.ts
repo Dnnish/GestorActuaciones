@@ -1,17 +1,36 @@
 import { db, actuaciones, users, documents } from "@minidrive/db";
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, asc, count, sql, and, type SQL } from "drizzle-orm";
 
 export const actuacionRepository = {
-  async findAll(page: number, limit: number, search?: string) {
+  async findAll(
+    page: number,
+    limit: number,
+    search?: string,
+    sortBy = "date",
+    sortOrder = "desc",
+    coliseoStatus = "all",
+  ) {
     const offset = (page - 1) * limit;
 
-    const searchFilter = search
-      ? sql`(similarity(${actuaciones.name}, ${search}) > 0.1 OR ${actuaciones.name} ILIKE ${'%' + search + '%'})`
-      : undefined;
+    const conditions: SQL[] = [];
 
-    const orderBy = search
+    if (search) {
+      conditions.push(
+        sql`(similarity(${actuaciones.name}, ${search}) > 0.1 OR ${actuaciones.name} ILIKE ${"%" + search + "%"})`,
+      );
+    }
+
+    if (coliseoStatus !== "all") {
+      conditions.push(eq(actuaciones.coliseoStatus, coliseoStatus === "true"));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const orderByClause = search
       ? sql`similarity(${actuaciones.name}, ${search}) DESC`
-      : desc(actuaciones.createdAt);
+      : sortBy === "name"
+        ? (sortOrder === "asc" ? asc(actuaciones.name) : desc(actuaciones.name))
+        : (sortOrder === "asc" ? asc(actuaciones.createdAt) : desc(actuaciones.createdAt));
 
     const baseQuery = db
       .select({
@@ -20,6 +39,7 @@ export const actuacionRepository = {
         createdById: actuaciones.createdById,
         createdByName: users.name,
         coliseoStatus: actuaciones.coliseoStatus,
+        folderColiseoStatuses: actuaciones.folderColiseoStatuses,
         createdAt: actuaciones.createdAt,
         updatedAt: actuaciones.updatedAt,
       })
@@ -29,11 +49,11 @@ export const actuacionRepository = {
     const countQuery = db.select({ total: count() }).from(actuaciones);
 
     const [data, totalResult] = await Promise.all([
-      searchFilter
-        ? baseQuery.where(searchFilter).orderBy(orderBy).limit(limit).offset(offset)
-        : baseQuery.orderBy(orderBy).limit(limit).offset(offset),
-      searchFilter
-        ? countQuery.where(searchFilter)
+      whereClause
+        ? baseQuery.where(whereClause).orderBy(orderByClause).limit(limit).offset(offset)
+        : baseQuery.orderBy(orderByClause).limit(limit).offset(offset),
+      whereClause
+        ? countQuery.where(whereClause)
         : countQuery,
     ]);
 
@@ -48,6 +68,7 @@ export const actuacionRepository = {
         createdById: actuaciones.createdById,
         createdByName: users.name,
         coliseoStatus: actuaciones.coliseoStatus,
+        folderColiseoStatuses: actuaciones.folderColiseoStatuses,
         createdAt: actuaciones.createdAt,
         updatedAt: actuaciones.updatedAt,
       })
@@ -84,10 +105,38 @@ export const actuacionRepository = {
     return result[0];
   },
 
+  async updateName(id: string, name: string) {
+    const result = await db
+      .update(actuaciones)
+      .set({ name })
+      .where(eq(actuaciones.id, id))
+      .returning();
+    return result[0] ?? null;
+  },
+
   async updateColiseoStatus(id: string, status: boolean) {
     const result = await db
       .update(actuaciones)
       .set({ coliseoStatus: status })
+      .where(eq(actuaciones.id, id))
+      .returning();
+    return result[0] ?? null;
+  },
+
+  async updateFolderColiseoStatus(id: string, folder: string, status: boolean) {
+    const row = await db
+      .select({ folderColiseoStatuses: actuaciones.folderColiseoStatuses })
+      .from(actuaciones)
+      .where(eq(actuaciones.id, id))
+      .limit(1);
+    if (!row[0]) return null;
+
+    const current = (row[0].folderColiseoStatuses ?? {}) as Record<string, boolean>;
+    const updated = { ...current, [folder]: status };
+
+    const result = await db
+      .update(actuaciones)
+      .set({ folderColiseoStatuses: updated })
       .where(eq(actuaciones.id, id))
       .returning();
     return result[0] ?? null;

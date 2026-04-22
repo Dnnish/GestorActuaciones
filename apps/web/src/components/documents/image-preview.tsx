@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, X } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,23 +36,13 @@ export function ImagePreview({ open, onOpenChange, document: doc, downloadUrl }:
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-5xl h-[90vh] flex flex-col gap-0 p-0 bg-background">
-        <DialogHeader className="flex flex-row items-center justify-between px-4 py-3 border-b shrink-0">
-          <DialogTitle className="text-sm font-medium truncate max-w-[60%]" title={doc.filename}>
+        <DialogHeader className="flex flex-row items-center justify-between px-4 py-3 border-b shrink-0 pr-12">
+          <DialogTitle className="text-sm font-medium truncate max-w-[70%]" title={doc.filename}>
             {doc.filename}
           </DialogTitle>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={handleDownload} aria-label="Descargar">
-              <Download className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleOpenChange(false)}
-              aria-label="Cerrar"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" onClick={handleDownload} aria-label="Descargar">
+            <Download className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
         <div className="flex-1 overflow-auto flex items-center justify-center bg-black/90 p-4">

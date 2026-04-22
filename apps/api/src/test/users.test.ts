@@ -126,7 +126,7 @@ describe("POST /api/users", () => {
       url: "/api/users",
       headers: { cookie: superadminCookies },
       payload: {
-        email: "newadmin@test.com",
+        code: "1234567890",
         password: "12345678",
         name: "New Admin",
         role: "admin",
@@ -135,17 +135,30 @@ describe("POST /api/users", () => {
 
     expect(res.statusCode).toBe(201);
     const body = res.json();
-    expect(body.email).toBe("newadmin@test.com");
+    expect(body.email).toBe("1234567890@minidrive.com");
     expect(body.role).toBe("admin");
   });
 
-  it("returns 409 for duplicate email", async () => {
+  it("returns 409 for duplicate code", async () => {
+    // First create via API
+    await app.inject({
+      method: "POST",
+      url: "/api/users",
+      headers: { cookie: superadminCookies },
+      payload: {
+        code: "9999999999",
+        password: "12345678",
+        name: "First",
+        role: "user",
+      },
+    });
+
     const res = await app.inject({
       method: "POST",
       url: "/api/users",
       headers: { cookie: superadminCookies },
       payload: {
-        email: "superadmin@test.com",
+        code: "9999999999",
         password: "12345678",
         name: "Duplicate",
         role: "user",
@@ -161,7 +174,7 @@ describe("POST /api/users", () => {
       url: "/api/users",
       headers: { cookie: superadminCookies },
       payload: {
-        email: "bad-email",
+        code: "abc",
         password: "123",
         name: "",
       },
@@ -190,18 +203,38 @@ describe("PATCH /api/users/:id", () => {
     expect(res.json().name).toBe("After");
   });
 
-  it("returns 409 for duplicate email on update", async () => {
-    const { user } = await createAuthenticatedUser(app, {
-      email: "edit2@test.com",
-      password: "12345678",
-      name: "Edit",
+  it("returns 409 for duplicate code on update", async () => {
+    // Create a user via API with a known code
+    await app.inject({
+      method: "POST",
+      url: "/api/users",
+      headers: { cookie: superadminCookies },
+      payload: {
+        code: "1111111111",
+        password: "12345678",
+        name: "First User",
+        role: "user",
+      },
     });
+
+    const createRes = await app.inject({
+      method: "POST",
+      url: "/api/users",
+      headers: { cookie: superadminCookies },
+      payload: {
+        code: "2222222222",
+        password: "12345678",
+        name: "Second User",
+        role: "user",
+      },
+    });
+    const secondUser = createRes.json();
 
     const res = await app.inject({
       method: "PATCH",
-      url: `/api/users/${user.id}`,
+      url: `/api/users/${secondUser.id}`,
       headers: { cookie: superadminCookies },
-      payload: { email: "superadmin@test.com" },
+      payload: { code: "1111111111" },
     });
 
     expect(res.statusCode).toBe(409);

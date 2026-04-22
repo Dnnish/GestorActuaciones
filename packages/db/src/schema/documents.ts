@@ -1,4 +1,4 @@
-import { pgTable, varchar, bigint, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, varchar, bigint, integer, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 import { actuaciones } from "./actuaciones";
 import { users } from "./users";
@@ -9,6 +9,7 @@ export const folderEnum = pgEnum("folder", [
   "fachadas",
   "fotos",
   "planos",
+  "arquetas",
 ]);
 
 export const documents = pgTable("documents", {
@@ -26,6 +27,7 @@ export const documents = pgTable("documents", {
   uploadedById: varchar("uploaded_by_id", { length: 36 })
     .notNull()
     .references(() => users.id),
+  sortOrder: integer("sort_order").notNull().default(0),
   uploadedAt: timestamp("uploaded_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
