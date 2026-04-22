@@ -22,6 +22,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useActuacion, useToggleColiseo, useToggleFolderColiseo } from "@/hooks/use-actuacion";
 import { useRenameActuacion } from "@/hooks/use-actuaciones";
 import { useDocuments, useBulkDownloadDocuments, useBulkDeleteDocuments, useReorderDocuments } from "@/hooks/use-documents";
+import type { Document } from "@/hooks/use-documents";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -49,8 +50,8 @@ const FOLDER_LABELS: Record<Folder, string> = {
 };
 
 function SortableDocumentItem({ doc, canDelete, selected, onToggleSelect }: {
-  doc: import("@/hooks/use-documents").Document;
-  canDelete: (doc: import("@/hooks/use-documents").Document) => boolean;
+  doc: Document;
+  canDelete: (doc: Document) => boolean;
   selected: boolean;
   onToggleSelect: (id: string) => void;
 }) {
@@ -86,7 +87,7 @@ function SortableDocumentItem({ doc, canDelete, selected, onToggleSelect }: {
 interface DocumentListProps {
   actuacionId: string;
   folder: Folder;
-  canDelete: (doc: import("@/hooks/use-documents").Document) => boolean;
+  canDelete: (doc: Document) => boolean;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
   viewMode: "list" | "grid";
@@ -247,7 +248,7 @@ export function ActuacionDetailPage() {
     user?.role === "superadmin" || user?.role === "admin";
 
   const THIRTY_MINUTES = 30 * 60 * 1000;
-  const canDelete = (doc: import("@/hooks/use-documents").Document) => {
+  const canDelete = (doc: Document) => {
     if (user?.role === "superadmin" || user?.role === "admin") return true;
     if (user?.role === "user") {
       return (
