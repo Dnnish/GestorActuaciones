@@ -1,8 +1,19 @@
 import type { FastifyPluginAsync } from "fastify";
 import { auth } from "../lib/auth.js";
+import { userRepository } from "../repositories/user-repository.js";
 
 const authPlugin: FastifyPluginAsync = async (app) => {
   app.all("/api/auth/*", async (request, reply) => {
+    if (request.method === "POST" && request.url.includes("/sign-in/email")) {
+      const body = request.body as { email?: string };
+      if (body?.email) {
+        const user = await userRepository.findByEmail(body.email);
+        if (user?.deletedAt) {
+          return reply.code(401).send({ error: "Cuenta desactivada. Contacta con un administrador." });
+        }
+      }
+    }
+
     const url = `http://localhost:${process.env.API_PORT ?? 3001}${request.url}`;
     const headers = new Headers();
     for (const [key, value] of Object.entries(request.headers)) {
