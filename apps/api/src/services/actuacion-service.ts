@@ -1,4 +1,6 @@
 import { actuacionRepository } from "../repositories/actuacion-repository.js";
+import { documentRepository } from "../repositories/document-repository.js";
+import { storageService } from "./storage-service.js";
 
 export const actuacionService = {
   async list(
@@ -58,20 +60,20 @@ export const actuacionService = {
     const actuacion = await actuacionRepository.findById(id);
     if (!actuacion) return null;
 
-    if (requesterRole === "superadmin") {
-      await actuacionRepository.deleteById(id);
-      return actuacion;
+    if (requesterRole !== "superadmin" && requesterRole !== "admin") {
+      throw new ForbiddenError("No tienes permisos para eliminar actuaciones");
     }
 
-    if (requesterRole === "admin") {
-      if (actuacion.createdById !== requesterId) {
-        throw new ForbiddenError("No tienes permisos para eliminar esta actuacion");
-      }
-      await actuacionRepository.deleteById(id);
-      return actuacion;
+    if (requesterRole === "admin" && actuacion.createdById !== requesterId) {
+      throw new ForbiddenError("No tienes permisos para eliminar esta actuacion");
     }
 
-    throw new ForbiddenError("No tienes permisos para eliminar actuaciones");
+    const docs = await documentRepository.findByActuacion(id);
+    await Promise.allSettled(docs.map((doc) => storageService.remove(doc.storageKey)));
+    await documentRepository.deleteByActuacionId(id);
+    await actuacionRepository.deleteById(id);
+
+    return actuacion;
   },
 };
 

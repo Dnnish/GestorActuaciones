@@ -79,6 +79,10 @@ export const documentRepository = {
     await db.delete(documents).where(inArray(documents.id, ids));
   },
 
+  async deleteByActuacionId(actuacionId: string) {
+    await db.delete(documents).where(eq(documents.actuacionId, actuacionId));
+  },
+
   async reorder(items: { id: string; sortOrder: number }[]) {
     if (items.length === 0) return;
     await db.transaction(async (tx) => {
