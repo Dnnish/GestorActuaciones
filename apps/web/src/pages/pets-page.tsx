@@ -928,7 +928,7 @@ function FolderCard({
   return (
     <>
       <div
-        className="flex cursor-pointer items-center gap-3 rounded-md border p-4 transition-colors hover:bg-muted/30"
+        className="flex cursor-pointer items-center gap-3 overflow-hidden rounded-md border p-4 transition-colors hover:bg-muted/30"
         onClick={() => !isEditing && onOpen(folder)}
         role="button"
         tabIndex={0}

@@ -185,7 +185,7 @@ function ActuacionCard({ actuacion, canRename, canDelete, onClick, onDelete }: A
                 </Button>
               </div>
             ) : (
-              <CardTitle className="text-base">{actuacion.name}</CardTitle>
+              <CardTitle className="truncate text-base">{actuacion.name}</CardTitle>
             )}
           </div>
           <div className="flex shrink-0 items-center gap-1">
