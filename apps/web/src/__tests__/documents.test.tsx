@@ -102,9 +102,9 @@ describe("FileUploadZone", () => {
 });
 
 describe("DocumentCard", () => {
-  it("boton eliminar NO visible cuando canDelete es false", () => {
+  it("boton eliminar NO visible cuando canDelete devuelve false", () => {
     renderWithProviders(
-      <DocumentCard document={mockDocument} canDelete={false} />,
+      <DocumentCard document={mockDocument} canDelete={() => false} />,
     );
 
     expect(
@@ -112,9 +112,9 @@ describe("DocumentCard", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("boton eliminar SI visible cuando canDelete es true", () => {
+  it("boton eliminar SI visible cuando canDelete devuelve true", () => {
     renderWithProviders(
-      <DocumentCard document={mockDocument} canDelete={true} />,
+      <DocumentCard document={mockDocument} canDelete={() => true} />,
     );
 
     expect(
