@@ -77,6 +77,7 @@ export function UsersPage() {
   const resetPassword = useResetPassword();
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [resetTarget, setResetTarget] = useState<User | null>(null);
 
   const [dialogState, setDialogState] = useState<DialogState>({
     type: "closed",
@@ -186,13 +187,7 @@ export function UsersPage() {
                         variant="ghost"
                         size="icon"
                         aria-label={`Restablecer contraseña de ${user.name}`}
-                        disabled={resetPassword.isPending}
-                        onClick={() =>
-                          resetPassword.mutate(user.id, {
-                            onSuccess: (data) => { setGeneratedPassword(data.password); setCopied(false); },
-                            onError: () => toast.error("Error al restablecer la contraseña"),
-                          })
-                        }
+                        onClick={() => setResetTarget(user)}
                       >
                         <KeyRound />
                       </Button>
@@ -268,6 +263,40 @@ export function UsersPage() {
               isSubmitting={updateUser.isPending}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!resetTarget} onOpenChange={(open) => { if (!open) setResetTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restablecer contraseña</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que quieres restablecer la contraseña de{" "}
+              <span className="font-medium text-foreground">{resetTarget?.name}</span>?
+              Se generará una nueva contraseña y la sesión activa del usuario se cerrará.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetTarget(null)}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={resetPassword.isPending}
+              onClick={() => {
+                if (!resetTarget) return;
+                resetPassword.mutate(resetTarget.id, {
+                  onSuccess: (data) => {
+                    setResetTarget(null);
+                    setGeneratedPassword(data.password);
+                    setCopied(false);
+                  },
+                  onError: () => toast.error("Error al restablecer la contraseña"),
+                });
+              }}
+            >
+              {resetPassword.isPending ? "Restableciendo..." : "Confirmar"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

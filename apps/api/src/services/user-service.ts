@@ -107,6 +107,8 @@ export const userService = {
       .set({ password: hashed, updatedAt: new Date() })
       .where(eq(accounts.userId, id));
 
+    await db.delete(sessions).where(eq(sessions.userId, id));
+
     return { password: newPassword };
   },
 
