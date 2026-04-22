@@ -22,6 +22,7 @@ export function useDocuments(actuacionId: string, folder: string) {
         `/api/actuaciones/${actuacionId}/documents?folder=${folder}`,
       ),
     enabled: !!actuacionId && !!folder,
+    refetchOnMount: "always",
   });
 }
 
