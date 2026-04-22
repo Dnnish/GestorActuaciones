@@ -59,6 +59,6 @@ if (isProduction) {
 await ensureBucket();
 
 await app.listen({
-  port: Number(process.env.API_PORT ?? 3001),
+  port: Number(process.env.PORT ?? process.env.API_PORT ?? 3001),
   host: process.env.API_HOST ?? "0.0.0.0",
 });
