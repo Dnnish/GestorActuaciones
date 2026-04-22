@@ -41,6 +41,9 @@ export const actuacionHandler = {
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return reply.code(400).send({ error: "El nombre es requerido" });
     }
+    if (name.trim().length > 50) {
+      return reply.code(400).send({ error: "El nombre no puede superar 50 caracteres" });
+    }
 
     try {
       const actuacion = await actuacionService.rename(
