@@ -18,6 +18,7 @@ RUN pnpm --filter=web build
 
 # Production image
 FROM base AS runner
+RUN npm install -g tsx
 COPY --from=deps /app/node_modules node_modules
 COPY --from=deps /app/apps/api/node_modules apps/api/node_modules
 COPY --from=deps /app/apps/web/node_modules apps/web/node_modules
@@ -34,4 +35,4 @@ ENV API_PORT=3001
 ENV API_HOST=0.0.0.0
 EXPOSE 3001
 
-CMD ["npx", "tsx", "apps/api/src/index.ts"]
+CMD ["tsx", "apps/api/src/index.ts"]
