@@ -156,6 +156,7 @@ function ActuacionCard({ actuacion, canRename, canDelete, onClick, onDelete }: A
                     }
                   }}
                   className="h-7 text-sm font-semibold"
+                  maxLength={50}
                   autoFocus
                   disabled={renameActuacion.isPending}
                 />
